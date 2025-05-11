@@ -21,3 +21,9 @@ output/
 *.tsv
 *.tsv.gz
 *.ckpt
+
+# nix environment
+.envrc
+.direnv
+.venv
+uv.lock
