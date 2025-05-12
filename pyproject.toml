@@ -33,6 +33,7 @@ dependencies = [
   "pytest",
   "torch>=2.2.0",
   "transformers",
+  "jupyter",
 ]
 
 dynamic = ["version"]
@@ -66,10 +67,11 @@ cellarium-ml = "cellarium.ml.cli:main"
 "Discussion Forum" = "https://github.com/cellarium-ai/cellarium-ml/discussions"
 
 [tool.setuptools.packages.find]
-include = ["cellarium.*"]
+include = ["cellarium.*", "fine_tune.*"] #include fine-tune
 
 [tool.setuptools.package-data]
 "cellarium.ml" = ["py.typed"]
+"fine_tune.scripts" = ["py.typed"] #include fine-tune
 
 [tool.setuptools-git-versioning]
 enabled = true

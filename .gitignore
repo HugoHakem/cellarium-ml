@@ -21,6 +21,7 @@ output/
 *.tsv
 *.tsv.gz
 *.ckpt
+*.zip
 
 # nix environment
 .envrc
