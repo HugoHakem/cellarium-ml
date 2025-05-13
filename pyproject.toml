@@ -33,7 +33,6 @@ dependencies = [
   "pytest",
   "torch>=2.2.0",
   "transformers",
-  "jupyter",
 ]
 
 dynamic = ["version"]
@@ -55,7 +54,12 @@ docs = [
   "sphinx_rtd_theme",
   "sphinx-copybutton",
 ]
-dev = ["cellarium-ml[docs,lint,mypy,test]"]
+tune = [
+  "jupyter",
+  "scanpy",
+  "smart-open"
+]
+dev = ["cellarium-ml[docs,lint,mypy,test,tune]"]
 
 [project.scripts]
 cellarium-ml = "cellarium.ml.cli:main"

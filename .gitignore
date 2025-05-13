@@ -22,6 +22,8 @@ output/
 *.tsv.gz
 *.ckpt
 *.zip
+*.tar
+*.txt.gz
 
 # nix environment
 .envrc
