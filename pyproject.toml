@@ -57,7 +57,7 @@ docs = [
 tune = [
   "jupyter",
   "scanpy",
-  "smart-open"
+  "smart-open",
 ]
 dev = ["cellarium-ml[docs,lint,mypy,test,tune]"]
 
