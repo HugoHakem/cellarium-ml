@@ -1,5 +1,7 @@
-from .utils_gears import data_download_wrapper
+from .download import FileEntry, download_url, iter_download_url
 
 __all__ = [
-    "data_download_wrapper"
+    "FileEntry",
+    "download_url",
+    "iter_download_url",
 ]
