@@ -24,6 +24,8 @@ output/
 *.zip
 *.tar
 *.txt.gz
+*.mtx
+*.mtx.gz
 
 # nix environment
 .envrc

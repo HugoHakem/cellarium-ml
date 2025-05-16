@@ -2,7 +2,7 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Union
+from typing import Optional, Union
 from urllib.parse import unquote_to_bytes
 
 import requests
@@ -15,14 +15,28 @@ from tqdm.contrib.concurrent import thread_map
 class FileEntry:
     url: str
     out_path: Path
-    raw_path: Path | None = None
-    filename: str | None = None
+    raw_path: Optional[Path] = None
+    filename: Optional[str] = None
 
-@dataclass
-class FileEntryGroup:
-    __root__: Dict[str, FileEntry]
+    def __post_init__(self):
+        if not isinstance(self.out_path, Path):
+            if isinstance(self.out_path, str):
+                self.out_path = Path(self.out_path)
+            else:
+                raise ValueError(
+                    f"`out_path` must be a Path or str, got {type(self.out_path)}"
+                )
 
-FileMap = Dict[str, Union[FileEntry, FileEntryGroup]]
+        if self.raw_path is not None and not isinstance(self.raw_path, Path):
+            if isinstance(self.raw_path, str):
+                self.raw_path = Path(self.raw_path)
+            else:
+                raise ValueError(
+                    f"`raw_path` must be a Path or str if provided, got {type(self.raw_path)}"
+                )
+
+FileEntryGroup = dict[str, FileEntry]
+FileMap = dict[str, Union[FileEntry, FileEntryGroup]]
 
 
 # === SECTION: utilities ===

@@ -1,0 +1,60 @@
+cfg:
+  use_key_name: true
+  file_map:
+    raw_adamson:
+      url: https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE90546&format=file
+      out_path: ./fine_tune/datasets/raw
+      raw_path: ./fine_tune/datasets/.tar/raw
+      filename: raw_adamson.tar
+    raw_norman:
+      barcodes:
+        url: https://ftp.ncbi.nlm.nih.gov/geo/series/GSE133nnn/GSE133344/suppl/GSE133344%5Fraw%5Fbarcodes.tsv.gz
+        out_path: ./fine_tune/datasets/raw
+        filename: barcodes.tsv.gz
+      cell_identities:
+        url: https://ftp.ncbi.nlm.nih.gov/geo/series/GSE133nnn/GSE133344/suppl/GSE133344%5Fraw%5Fcell%5Fidentities.csv.gz
+        out_path: ./fine_tune/datasets/raw
+        filename: cell_identities.csv.gz
+      genes:
+        url: https://ftp.ncbi.nlm.nih.gov/geo/series/GSE133nnn/GSE133344/suppl/GSE133344%5Fraw%5Fgenes.tsv.gz
+        out_path: ./fine_tune/datasets/raw
+        filename: genes.tsv.gz
+      matrix:
+        url: https://ftp.ncbi.nlm.nih.gov/geo/series/GSE133nnn/GSE133344/suppl/GSE133344%5Fraw%5Fmatrix.mtx.gz
+        out_path: ./fine_tune/datasets/raw
+        filename: matrix.mtx.gz
+    raw_repogle_k562:
+      gwps_repogle_k562:
+        url: https://plus.figshare.com/ndownloader/files/35775507
+        out_path: ./fine_tune/datasets/anndata
+      essential_repogle_k562:
+        url: https://plus.figshare.com/ndownloader/files/35773219
+        out_path: ./fine_tune/datasets/anndata
+    raw_repogle_rpe1:
+      url: https://plus.figshare.com/ndownloader/files/35775606
+      out_path: ./fine_tune/datasets/anndata
+    gears_adamson:
+      url: https://dataverse.harvard.edu/api/access/datafile/6154417
+      out_path: ./fine_tune/datasets/anndata
+      raw_path: ./fine_tune/datasets/.zip/anndata
+      filename: gears_adamson.zip
+    gears_norman:
+      url: https://dataverse.harvard.edu/api/access/datafile/6154020
+      out_path: ./fine_tune/datasets/anndata
+      raw_path: ./fine_tune/datasets/.zip/anndata
+      filename: gears_norman.zip
+    gears_replogle_rpe1:
+      url: https://dataverse.harvard.edu/api/access/datafile/7458694
+      out_path: ./fine_tune/datasets/anndata
+      raw_path: ./fine_tune/datasets/.zip/anndata
+      filename: gears_replogle_rpe1.zip
+    gears_replogle_k562:
+      url: https://dataverse.harvard.edu/api/access/datafile/7458695
+      out_path: ./fine_tune/datasets/anndata
+      raw_path: ./fine_tune/datasets/.zip/anndata
+      filename: gears_replogle_k562.zip
+    sc_foundation_norman:
+      url: https://figshare.com/ndownloader/files/44477939
+      out_path: ./fine_tune/datasets/anndata
+      raw_path: ./fine_tune/datasets/.zip/anndata
+      filename: sc_foundation_norman.zip
