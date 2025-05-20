@@ -58,6 +58,9 @@ tune = [
   "jupyter",
   "scanpy",
   "smart-open",
+  "more-itertools",
+  "pybiomart",
+  "scikit-image"
 ]
 dev = ["cellarium-ml[docs,lint,mypy,test,tune]"]
 

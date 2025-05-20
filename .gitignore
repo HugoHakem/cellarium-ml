@@ -26,6 +26,7 @@ output/
 *.txt.gz
 *.mtx
 *.mtx.gz
+*.sqlite
 
 # nix environment
 .envrc
