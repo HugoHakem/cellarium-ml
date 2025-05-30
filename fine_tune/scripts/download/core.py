@@ -1,6 +1,7 @@
 import shutil
 import tarfile
 from pathlib import Path
+from typing import Optional
 from zipfile import ZipFile
 
 import requests
@@ -20,9 +21,9 @@ from .utils import (
 def download_url(
         url: str,
         out_path: Path,
-        raw_path: Path|None=None,
-        filename: str|None=None,
-        max_workers: int|None=None,
+        raw_path: Optional[Path]=None,
+        filename: Optional[str]=None,
+        max_workers: Optional[int]=None,
     ):
     """
     Wrapper for file download and extraction.

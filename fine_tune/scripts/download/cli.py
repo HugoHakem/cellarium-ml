@@ -10,7 +10,7 @@ from fine_tune.scripts.download.utils import FileEntry, FileMap
 
 
 # === SECTION: Custom serializer and deserializer to register custom data types ===
-def _serialize_path(val):
+def _serialize_path(val: Union[Path, str]) -> str:
     return str(val) if isinstance(val, Path) else val
 
 def file_entry_serializer(val: FileEntry) -> dict:
@@ -106,6 +106,20 @@ class DownloadConfig:
     use_key_name: bool = False
 
 def cli_iter_download_url(cfg: DownloadConfig):
+    """
+    Iterate over a file map and download each file or group of files.
+
+    This function processes a mapping of dataset names to FileEntry objects or
+    dictionaries of FileEntry objects. For each entry, it calls `download_url`
+    to download the file(s) to the specified locations. If `use_key_name` is True,
+    the key name is used as the filename for the download. Note that if file.filename
+    is specified, it will always prevail.
+
+    Args:
+        cfg (DownloadConfig):
+            file_map (FileMap): A mapping of dataset names to FileEntry or dicts of FileEntry.
+            use_key_name (bool, optional): If True, use the key name as the filename.
+    """
     iter_download_url(file_map=cfg.file_map, use_key_name=cfg.use_key_name)
 
 
