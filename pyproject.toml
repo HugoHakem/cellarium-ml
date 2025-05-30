@@ -60,7 +60,11 @@ tune = [
   "smart-open",
   "more-itertools",
   "pybiomart",
-  "scikit-image"
+  "scikit-image",
+  "pertpy",
+  "pooch",
+  "fastcluster",
+  "biopython",
 ]
 dev = ["cellarium-ml[docs,lint,mypy,test,tune]"]
 

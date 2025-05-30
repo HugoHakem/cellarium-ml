@@ -16,6 +16,9 @@ build/
 notebooks/.ipynb_checkpoints/
 output/
 *.h5ad
+*.h5ad.lock
+*.h5mu
+*.h5mu.lock
 *.csv
 *.csv.gz
 *.tsv
@@ -27,6 +30,7 @@ output/
 *.mtx
 *.mtx.gz
 *.sqlite
+
 
 # nix environment
 .envrc
