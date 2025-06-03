@@ -33,28 +33,4 @@ cfg:
     raw_repogle_rpe1:
       url: https://plus.figshare.com/ndownloader/files/35775606
       out_path: ./fine_tune/datasets/anndata
-    # gears_adamson:
-    #   url: https://dataverse.harvard.edu/api/access/datafile/6154417
-    #   out_path: ./fine_tune/datasets/anndata
-    #   raw_path: ./fine_tune/datasets/.zip/anndata
-    #   filename: gears_adamson.zip
-    # gears_norman:
-    #   url: https://dataverse.harvard.edu/api/access/datafile/6154020
-    #   out_path: ./fine_tune/datasets/anndata
-    #   raw_path: ./fine_tune/datasets/.zip/anndata
-    #   filename: gears_norman.zip
-    # gears_replogle_rpe1:
-    #   url: https://dataverse.harvard.edu/api/access/datafile/7458694
-    #   out_path: ./fine_tune/datasets/anndata
-    #   raw_path: ./fine_tune/datasets/.zip/anndata
-    #   filename: gears_replogle_rpe1.zip
-    # gears_replogle_k562:
-    #   url: https://dataverse.harvard.edu/api/access/datafile/7458695
-    #   out_path: ./fine_tune/datasets/anndata
-    #   raw_path: ./fine_tune/datasets/.zip/anndata
-    #   filename: gears_replogle_k562.zip
-    # sc_foundation_norman:
-    #   url: https://figshare.com/ndownloader/files/44477939
-    #   out_path: ./fine_tune/datasets/anndata
-    #   raw_path: ./fine_tune/datasets/.zip/anndata
-    #   filename: sc_foundation_norman.zip
+    
