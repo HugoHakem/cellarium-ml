@@ -65,6 +65,7 @@ tune = [
   "pooch",
   "fastcluster",
   "biopython",
+  "igraph"
 ]
 dev = ["cellarium-ml[docs,lint,mypy,test,tune]"]
 
