@@ -53,6 +53,11 @@ docs = [
   "sphinx",
   "sphinx_rtd_theme",
   "sphinx-copybutton",
+  # for reStructuredText vscode extension
+  "doc8", 
+  "rstcheck",
+  "esbonio",
+  "pandoc",
 ]
 tune = [
   "jupyter",
@@ -66,7 +71,7 @@ tune = [
   "fastcluster",
   "biopython",
   "igraph",
-  "rdkit"
+  "rdkit",
 ]
 dev = ["cellarium-ml[docs,lint,mypy,test,tune]"]
 

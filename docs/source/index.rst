@@ -8,6 +8,12 @@ Table of Contents
 
 .. toctree::
    :maxdepth: 1
+   :caption: Readme
+
+   README
+
+.. toctree::
+   :maxdepth: 1
    :caption: Documentation
 
    callbacks

@@ -6,10 +6,14 @@
 **Cellarium ML: a machine learning framework for single-cell biology**
 ======================================================================
 
-Cellarium ML is a PyTorch Lightning-based library for distributed single-cell data analysis.
-It provides tools for training deep learning models on large-scale single-cell datasets,
-including distributed data loading, model training, and evaluation. Designed to be modular
-and extensible, Cellarium ML allows users to easily define custom models, data transformations,
+Cellarium ML is a PyTorch Lightning-based library for distributed
+single-cell data analysis.
+It provides tools for training deep learning models on
+large-scale single-cell datasets,
+including distributed data loading, model training, and evaluation.
+Designed to be modular
+and extensible, Cellarium ML allows users to easily define custom
+models, data transformations,
 and training pipelines.
 
 -------------------------------------------------------------------------------
@@ -39,28 +43,32 @@ The code is organized as follows:
 Important Notes
 ~~~~~~~~~~~~~~~
 
-``cellarium/ml/models/*``  
+``cellarium/ml/models/*``
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Models must subclass ``CellariumModel`` and implement the following:  
-- ``reset_parameters``: Initializes model parameters.  
-- ``forward``: Returns a dictionary containing the computed loss under the ``loss`` key.  
+- Models must subclass ``CellariumModel`` and implement the following:
+- ``reset_parameters``: Initializes model parameters.
+- ``forward``: Returns a dictionary
+  containing the computed loss under the ``loss`` key.
 
-Optional hooks for training include:  
+Optional hooks for training include:
 
-- ``on_train_start``: Called at the start of training.  
-- ``on_train_epoch_end``: Triggered at the end of each epoch.  
-- ``on_train_batch_end``: Triggered at the end of each batch.  
+- ``on_train_start``: Called at the start of training.
+- ``on_train_epoch_end``: Triggered at the end of each epoch.
+- ``on_train_batch_end``: Triggered at the end of each batch.
 
 ``cellarium/ml/transforms/*``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - All transforms must subclass ``torch.nn.Module``.
-- The ``forward`` method must output a dictionary where keys correspond to the input arguments for subsequent transforms or the model.  
+- The ``forward`` method must output a
+  dictionary where keys correspond to the input
+  arguments for subsequent transforms or the model.
 
 ``cellarium/ml/cli.py``
 ~~~~~~~~~~~~~~~~~~~~~~~
-- Models must be registered here to be accessible via the command-line interface (``cellarium-ml`` CLI).
+- Models must be registered here to be accessible
+  via the command-line interface (``cellarium-ml`` CLI).
 
 
 
@@ -86,8 +94,8 @@ To install the developer version from source:
 **API Documentation and Tutorials**
 -----------------------------------
 
-For detailed API documentation and tutorials, visit:  
-`Cellarium ML Documentation <https://cellarium-ai.github.io/cellarium-ml/>`_
+For detailed API documentation and tutorials, visit:
+`Cellarium ML Documentation <https://cellarium-ai.github.io/cellarium-ml/>`__
 
 -------------------------------------------------------------------------------
 

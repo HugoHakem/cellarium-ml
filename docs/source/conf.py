@@ -8,6 +8,11 @@
 import glob
 import os
 import shutil
+import sys
+
+# Force the PATH to include the virtualenv's bin dir (where pandoc should be)
+venv_bin = os.path.join(os.path.dirname(sys.executable), "")
+os.environ["PATH"] = venv_bin + os.pathsep + os.environ.get("PATH", "")
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information

@@ -33,6 +33,7 @@
 
         # General packages for your dev shell
         packages = (with pkgs; [
+          pandoc
           # e.g., duckdb 
         ]) ++ (with mpkgs; [
           uv  # pull latest uv from nixpkgs master
@@ -64,6 +65,10 @@
                 else
                   echo "Creating new venv environment in path: '${venvDir}'"
                   uv venv "${venvDir}"
+
+                  # Create symlink to pandoc inside .venv/bin immediately after venv creation
+                  ln -s "$(which pandoc)" "${venvDir}/bin/pandoc"
+                  echo "Symlinked pandoc into ${venvDir}/bin"
                 fi
 
                 # FEEL FREE TO UPDATE WITH --extra name-of-extra-dependencies-in-pyproject.toml
