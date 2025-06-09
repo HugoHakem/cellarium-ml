@@ -72,6 +72,7 @@ tune = [
   "biopython",
   "igraph",
   "rdkit",
+  "datasets",
 ]
 dev = ["cellarium-ml[docs,lint,mypy,test,tune]"]
 
@@ -108,3 +109,8 @@ ignore_missing_imports = true
 explicit_package_bases = true
 check_untyped_defs = true
 warn_unreachable = true
+
+[tool.rstcheck]
+ignore_directives = [
+  "automodule"
+]
