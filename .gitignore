@@ -30,6 +30,7 @@ output/
 *.mtx
 *.mtx.gz
 *.sqlite
+*.xlsx
 
 
 # nix environment
