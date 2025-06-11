@@ -11,6 +11,33 @@ from .utils_perturbation import assign_perturbation_id, infer_perturbation_type
 
 # === SECTION: Custom Type ===
 
+OBS_DTYPE_MAP = {
+    'cell_barcode': str,                 # Unique identifier per cell
+
+    # Perturbation metadata
+    'perturbation_type': 'category',     # e.g., "CRISPRi", "drug", "CRISPRa+drug"
+    'gene_perturbed': 'category',        # Name of gene, can be NaN for drug-only
+    'perturbation_id': 'category',       # Unified ID string, e.g. "TP53_CRISPRi+bortezomib_1(uM)"
+    'is_control': bool,                  # True for negative controls (e.g., DMSO or NT guides)
+
+    # Drug metadata
+    'drug': 'category',                  # Drug name (e.g., "bortezomib")
+    'drug_dose': [str, 'category'],      # List of tuples: [("drug_name", float_dose, "unit")] (Must be cast to str)
+    'drug_canonical_smiles': 'category', # Molecular structure (SMILES)
+    'drug_targets': 'category',          # List[str] or ";"-delimited string of targets
+    'drug_moa_broad': 'category',        # e.g., "Proteasome inhibitor"
+    'drug_moa_fine': 'category',         # List[str] or string (if hierarchical MOA)
+    'drug_pubchem_cid': 'Int64',         # Nullable integer type
+
+    # Sample/biological metadata
+    'tissue': 'category',                # Tissue of origin
+    'cell_type': 'category',             # Broad annotation (e.g., "epithelial")
+    'cell_line': 'category',             # Specific model (e.g., "MCF7")
+    'disease': 'category',               # Disease label (e.g., "breast cancer")
+    'organism': 'category',              # e.g., "human"
+    'assay': 'category'                  # e.g., "scRNA-seq", "Cell Painting"
+}
+
 class MetadataDict(dict):
     REQUIRED_KEYS = {
         "tissue": "cell line",
@@ -90,39 +117,27 @@ class MetadataDict(dict):
 
 # === SECTION: Format Obs ===
 
-OBS_DTYPE_MAP = {
-    'cell_barcode': str,                 # Unique identifier per cell
-
-    # Perturbation metadata
-    'perturbation_type': 'category',     # e.g., "CRISPRi", "drug", "CRISPRa+drug"
-    'gene_perturbed': 'category',        # Name of gene, can be NaN for drug-only
-    'perturbation_id': 'category',       # Unified ID string, e.g. "TP53_CRISPRi+bortezomib_1(uM)"
-    'is_control': bool,                  # True for negative controls (e.g., DMSO or NT guides)
-
-    # Drug metadata
-    'drug': 'category',                  # Drug name (e.g., "bortezomib")
-    'drug_dose': [str, 'category'],      # List of tuples: [("drug_name", float_dose, "unit")] (Must be cast to str)
-    'drug_canonical_smiles': 'category', # Molecular structure (SMILES)
-    'drug_targets': 'category',          # List[str] or ";"-delimited string of targets
-    'drug_moa_broad': 'category',        # e.g., "Proteasome inhibitor"
-    'drug_moa_fine': 'category',         # List[str] or string (if hierarchical MOA)
-    'drug_pubchem_cid': 'Int64',         # Nullable integer type
-
-    # Sample/biological metadata
-    'tissue': 'category',                # Tissue of origin
-    'cell_type': 'category',             # Broad annotation (e.g., "epithelial")
-    'cell_line': 'category',             # Specific model (e.g., "MCF7")
-    'disease': 'category',               # Disease label (e.g., "breast cancer")
-    'organism': 'category',              # e.g., "human"
-    'assay': 'category'                  # e.g., "scRNA-seq", "Cell Painting"
-}
 
 def cast_obs_types(obs: pd.DataFrame, obs_dtype_map=dict):
+    """
+    Casts columns of a DataFrame to specified data types.
+
+    Iterates over the columns in `obs_dtype_map` and casts the corresponding columns in `obs`
+    to the specified type(s). Handles special cases for categorical and string types to avoid
+    converting NaN values to strings.
+
+    Args:
+        obs (pd.DataFrame): The DataFrame whose columns will be cast.
+        obs_dtype_map (dict): A mapping from column names to target data types. The type can be a
+            single type or a list of types to try in order.
+
+    Returns:
+        None: The function modifies `obs` in place.
+    """
     def _cast(ser: pd.Series, dt: Any):
         try:
             if dt == "category":
                 # Ensure str conversion doesn't turn NaN into "nan"
-                # ser = ser.astype(object)  # avoids auto-casting
                 ser = ser.where(ser.notna())  # keep missing values
                 ser = ser.astype("category")
             elif dt is str:
@@ -176,7 +191,7 @@ def format_obs(
         if key not in obs.columns and key not in ["gene_perturbation_type", "drug_dose_unit"]:
             obs[key] = val
 
-    drug_mask = ~obs["drug"].isna()
+    drug_mask = obs["drug"].notna()
     if drug_mask.sum():
 
         # check for uncomplete tuple of drug, drug_dose, drug_canonical_smiles
@@ -275,7 +290,7 @@ def format_var(
         .set_index("ensembl_id")
     )
     adata.var[key_symbol] = adata.var[key_symbol].where(
-        ~adata.var[key_symbol].isna(),
+        adata.var[key_symbol].notna(),
         adata.var_names
     )
     return adata

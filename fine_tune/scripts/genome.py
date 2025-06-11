@@ -197,7 +197,7 @@ def get_clone_name(
     )
     # Unmaped CloneName should fallback to original symbol
     gene_df_copy["symbol"] = gene_df_copy["CloneName"].where(
-        ~gene_df_copy["CloneName"].isna(), # unmaped CloneName should fallback to original symbol
+        gene_df_copy["CloneName"].notna(), # unmaped CloneName should fallback to original symbol
         gene_df_copy["symbol"]
     )
 
@@ -332,7 +332,7 @@ def build_ref_genome(
 
         else: # else turn at least NaN in ensembl_id
             gene_allow_df["_symbol"] = gene_allow_df["symbol"].where(
-                ~gene_allow_df["symbol"].isna(),
+                gene_allow_df["symbol"].notna(),
                 gene_allow_df["ensembl_id"]
             )
             print("Symbols that are NaNs turned into Ensembl IDs: "

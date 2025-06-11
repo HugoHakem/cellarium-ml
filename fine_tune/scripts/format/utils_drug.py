@@ -24,7 +24,7 @@ def normalize_drug_fields(df: pd.DataFrame) -> pd.DataFrame:
     Canonicalize SMILES
     """
     df["drug_dose"] = df["drug_dose"].astype(object)
-    drug_mask = ~df["drug"].isna()
+    drug_mask = df["drug"].notna()
 
     # Split drugs and ensure drug_dose is a list
     df.loc[drug_mask, "drug"] = df.loc[drug_mask, "drug"].str.split("+")
@@ -39,7 +39,7 @@ def normalize_drug_fields(df: pd.DataFrame) -> pd.DataFrame:
 
 def check_missing_pairs(df: pd.DataFrame) -> None:
     """Ensure that no row has a drug without a dose or SMILES"""
-    drug_mask = ~df["drug"].isna()
+    drug_mask = df["drug"].notna()
     incomplete = df.loc[drug_mask, ["drug", "drug_dose", "drug_canonical_smiles"]].isna().any(axis=1)
 
     if incomplete.any():
@@ -70,7 +70,7 @@ def _validate_dose_row(drugs: list[str], doses: list[Any]) -> bool:
 
 def validate_all_doses(df: pd.DataFrame) -> None:
     """Check all drug/dose rows for format issues"""
-    drug_mask = ~df["drug"].isna()
+    drug_mask = df["drug"].notna()
     invalid_rows = df.loc[drug_mask].apply(
         lambda row: not _validate_dose_row(row["drug"], row["drug_dose"]),
         axis=1
@@ -109,7 +109,7 @@ def _format_dose_row(drugs: list[str], doses: list[Any], unit: Optional[str]) ->
 
 def standardize_drug_dose(df: pd.DataFrame, unit: Optional[str]) -> pd.Series:
     """Returns a new column with standardized (drug, dose, unit) tuples"""
-    drug_mask = ~df["drug"].isna()
+    drug_mask = df["drug"].notna()
     return df.loc[drug_mask].apply(
         lambda row: _format_dose_row(row["drug"], row["drug_dose"], unit),
         axis=1
