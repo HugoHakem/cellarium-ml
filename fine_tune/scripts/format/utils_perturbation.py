@@ -1,7 +1,101 @@
-import anndata as ad
-import numpy as np
+from typing import Optional
+
 import pandas as pd
-import scipy.sparse as sp
+
+VALID_PERT_TYPES = {"CRISPRi", "CRISPRa", "CRISPRko", "drug"}
+
+
+# === SECTION: Perturbation type ===
+
+
+def infer_perturbation_type(obs: pd.DataFrame, gene_pert_type: Optional[str]) -> pd.DataFrame:
+    """
+    Infers and standardizes the 'perturbation_type' column in a DataFrame of cell metadata.
+
+    For each row, determines the perturbation type(s) based on the presence and count of gene and drug perturbations.
+    If the 'perturbation_type' is missing or incomplete, it fills in the appropriate type(s) using the provided
+    default gene perturbation type and the presence of drugs.
+
+    Args:
+        obs (pd.DataFrame): DataFrame containing at least 'gene_perturbed' and 'drug' columns.
+        gene_pert_type (Optional[str]): Default perturbation type to use for gene perturbations
+            (e.g., "CRISPRi", "CRISPRa", or "CRISPRko"). Must be in VALID_PERT_TYPES.
+
+    Returns:
+        pd.DataFrame: DataFrame with the 'perturbation_type' column updated or added.
+
+    Raises:
+        ValueError: If the default gene perturbation type is invalid or if the perturbation type specification
+            is inconsistent with the number of gene/drug perturbations.
+    """
+    gene_counts = (
+        obs["gene_perturbed"].astype(str).str.count(r"\+").fillna(0) +
+        obs["gene_perturbed"].notna().astype(int)
+    )
+
+    drug_counts = (
+        obs["drug"].astype(str).str.count(r"\+").fillna(0) +
+        obs["drug"].notna().astype(int)
+    )
+
+
+    def resolve_pert_type(default, g_count, d_count):
+        total_count = g_count + d_count
+
+        if pd.isna(default):
+            if g_count > 0 and gene_pert_type not in VALID_PERT_TYPES:
+                raise ValueError(
+                    f"Invalid `gene_pert_type`: {repr(gene_pert_type)}. "
+                    f"Must be one of {VALID_PERT_TYPES} when gene perturbation is needed."
+                )
+            return "+".join(
+                [gene_pert_type] * g_count +
+                ["drug"] * d_count
+            ) if total_count > 0 else None
+
+        parts = default.split("+")
+        if not all(p in VALID_PERT_TYPES for p in parts):
+            raise ValueError(f"Invalid perturbation types: {parts}")
+
+        # Count actual gene/drug parts
+        gene_parts = [p for p in parts if p != "drug"]
+        drug_parts = [p for p in parts if p == "drug"]
+
+        # Check if counts match
+        if len(gene_parts) == g_count and len(drug_parts) == d_count:
+            return default  # Already valid
+
+        # If gene count is incorrect
+        if len(gene_parts) not in {0, g_count}:
+            raise ValueError(
+                f"Invalid `gene_pert_type`: {repr(gene_pert_type)}. "
+                f"Must be one of {VALID_PERT_TYPES} when gene perturbation is needed."
+            )
+
+        # Fix missing gene part (if completely missing)
+        if len(gene_parts) == 0 and g_count > 0:
+            if gene_pert_type not in VALID_PERT_TYPES:
+                raise ValueError(
+                    "`gene_pert_type` must be in " \
+                    f"{VALID_PERT_TYPES} when gene perturbation is needed."
+                )
+            gene_parts = [gene_pert_type] * g_count
+
+        # Fix missing drug part
+        if len(drug_parts) != d_count:
+            drug_parts = ["drug"] * d_count
+
+        return "+".join(gene_parts + drug_parts) if gene_parts or drug_parts else None
+
+    obs["perturbation_type"] = [
+        resolve_pert_type(default, g, d)
+        for default, g, d in zip(obs.get("perturbation_type", [None] * len(obs)), gene_counts, drug_counts)
+    ]
+
+    return obs
+
+
+# === SECTION: Perturbation ID ===
 
 
 def _build_perturbation_id(row: pd.Series) -> str:
@@ -119,65 +213,3 @@ def assign_perturbation_id(df: pd.DataFrame, inplace: bool = True) -> pd.DataFra
     if not inplace:
         return _df
 
-
-def extend_var(
-    adata: ad.AnnData,
-    gene_name: pd.DataFrame,
-    key_symbol: str="symbol"
-) -> ad.AnnData:
-    """
-    Extends the .var DataFrame of an AnnData object with standardized gene metadata.
-
-    Adds or updates the following columns:
-        - UMI_count: Total UMI counts per gene.
-        - measured: Boolean indicating if the gene was measured in the experiment.
-        - symbol: columns from the provided gene_name DataFrame, joined on Ensembl ID.
-
-    Args:
-        adata (anndata.AnnData): AnnData object to extend.
-        gene_name (pd.DataFrame): DataFrame with gene metadata, indexed by Ensembl ID.
-        key_symbol (str): the expected key to retrieve symbol in gene_name
-
-    Returns:
-        anndata.AnnData: AnnData object with extended .var DataFrame.
-    """
-
-    adata.var["UMI_count"] = pd.Series(
-        np.asarray(adata.X.sum(axis=0)).ravel(),
-        index=adata.var_names
-    )
-    adata.var["measured"] = True
-
-    missing_genes = gene_name.index.difference(adata.var_names)
-    X_missing = sp.csr_matrix(
-        (
-            adata.n_obs,
-            len(missing_genes)
-        )
-    )
-
-    _adata = ad.AnnData(
-        X = sp.hstack([adata.X, X_missing], format="csr"),
-        obs = adata.obs,
-        var = pd.concat(
-            [adata.var,
-            pd.DataFrame({"UMI_count": 0, "measured": False}, index=missing_genes)],
-            axis=0
-        )
-    )
-    adata = _adata[:,
-        (_adata.var["UMI_count"] > 0) |
-        _adata.var_names.isin(gene_name.index)
-    ].copy()
-    adata.var = (
-        adata.var
-        .reset_index()
-        .rename(columns={"index": "ensembl_id"})
-        .join(gene_name, on="ensembl_id")
-        .set_index("ensembl_id")
-    )
-    adata.var[key_symbol] = adata.var[key_symbol].where(
-        ~adata.var[key_symbol].isna(),
-        adata.var_names
-    )
-    return adata
