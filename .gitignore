@@ -31,10 +31,10 @@ output/
 *.mtx.gz
 *.sqlite
 *.xlsx
+*.zarr/
 
 
 # nix environment
 .envrc
 .direnv
 .venv
-uv.lock
