@@ -1,0 +1,14 @@
+# Seek to recreate the tahoe gene_metadata available at:
+# https://huggingface.co/datasets/tahoebio/Tahoe-100M/tree/main/metadata
+# it is simply the GRCH38 Release v109 corresponding to the gencode v43: 
+#   citation: https://www.biorxiv.org/content/10.1101/2025.02.20.639398v3.full#:~:text=Ensembl%20release%20109%20and%20genome%20build%2038
+# no biotype filter is applied, duplicate symbol are reindex with a num tag based on ensembl_id order.
+data_path: fine_tune/datasets/genome
+out_name: null 
+version: 43
+filter_biotype: false
+use_hgnc: false
+hgnc_date: null
+use_clone: false
+allow_duplicate_symbol: true
+allow_accession: false

@@ -23,14 +23,14 @@ cfg:
         url: https://ftp.ncbi.nlm.nih.gov/geo/series/GSE133nnn/GSE133344/suppl/GSE133344%5Fraw%5Fmatrix.mtx.gz
         out_path: ./fine_tune/datasets/raw
         filename: matrix.mtx.gz
-    raw_repogle_k562:
-      gwps_repogle_k562:
+    raw_replogle_k562:
+      gwps_replogle_k562:
         url: https://plus.figshare.com/ndownloader/files/35775507
         out_path: ./fine_tune/datasets/anndata
-      essential_repogle_k562:
+      essential_replogle_k562:
         url: https://plus.figshare.com/ndownloader/files/35773219
         out_path: ./fine_tune/datasets/anndata
-    raw_repogle_rpe1:
+    raw_replogle_rpe1:
       url: https://plus.figshare.com/ndownloader/files/35775606
       out_path: ./fine_tune/datasets/anndata
     

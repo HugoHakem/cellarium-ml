@@ -1,0 +1,14 @@
+# Seek to recreate the genome_assembly from 10x genomics:
+# https://www.10xgenomics.com/support/software/cell-ranger/downloads/cr-ref-build-steps#ref-2020-a
+# In addition of the biotype filter already present in the 10x processing, 
+# use hgnc_table at https://www.genenames.org/download/archive/monthly/tsv/ 
+# and remove accession number using the clone database at https://ftp.ncbi.nlm.nih.gov/repository/clone/reports/Homo_sapiens
+data_path: fine_tune/datasets/genome
+out_name: null
+version: 32
+filter_biotype: true
+use_hgnc: true
+hgnc_date: "2021-03-01"
+use_clone: true
+allow_duplicate_symbol: false
+allow_accession: false
