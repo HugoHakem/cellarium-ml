@@ -27,7 +27,7 @@ OBS_DTYPE_MAP = {
     'drug_targets': 'category',          # List[str] or ";"-delimited string of targets
     'drug_moa_broad': 'category',        # e.g., "Proteasome inhibitor"
     'drug_moa_fine': 'category',         # List[str] or string (if hierarchical MOA)
-    'drug_pubchem_cid': 'Int64',         # Nullable integer type
+    'drug_pubchem_cid': 'category',             # Nullable integer type
 
     # Sample/biological metadata
     'tissue': 'category',                # Tissue of origin
@@ -69,12 +69,12 @@ class MetadataDict(dict):
         "gene_perturbation_type": Optional[str],
         "drug": Optional[str],
         "drug_canonical_smiles": Optional[str],
-        "drug_dose": Optional[float],
+        "drug_dose": Optional[Any],
         "drug_dose_unit": Optional[str],
         "drug_targets": Optional[str],
         "drug_moa_broad": Optional[str],
         "drug_moa_fine": Optional[str],
-        "drug_pubchem_cid": Optional[str],
+        "drug_pubchem_cid": Optional[int],
 
     }
 
@@ -146,6 +146,7 @@ def cast_obs_types(obs: pd.DataFrame, obs_dtype_map=dict):
                 ser = ser.astype(str)
                 ser = ser.where(~(ser == "nan"))
             else:
+                ser = ser.where(ser.notna())
                 ser = ser.astype(dt)
         except Exception as e:
             warnings.warn(f"Warning: Could not cast column {ser.name} to {dtype}: {e}", UserWarning)
