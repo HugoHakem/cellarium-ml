@@ -26,7 +26,7 @@ cfg:
     raw_replogle_k562:
       gwps_replogle_k562:
         url: https://plus.figshare.com/ndownloader/files/35775507
-        out_path: ./fine_tune/datasets/anndata
+        out_path: ./fine_tune/datasets/anndata/raw_replogle
       essential_replogle_k562:
         url: https://plus.figshare.com/ndownloader/files/35773219
         out_path: ./fine_tune/datasets/anndata
