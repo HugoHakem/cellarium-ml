@@ -250,26 +250,56 @@ def format_duplicate_symbol(
     )
     nan_count = (gene_df['_symbol'] != gene_df['symbol']).sum()
     if allow_duplicate_symbol:
+        def is_tagged(symbol):
+            return bool(re.search(r'-\d+$', symbol))
+
+        # Step 1: Sort and prep
         gene_df_copy = gene_df.copy()
-        gene_df_copy = (gene_df_copy
+        gene_df_copy = (
+            gene_df_copy
             .sort_values(["_symbol", "ensembl_id"])
             .reset_index(drop=True)
         )
-        duplicate_id = (gene_df_copy
-            .groupby("_symbol")
-            .agg(list)
-            .apply(lambda x: list(range(len(x["ensembl_id"]))), axis=1)
-            .explode()
-            .where(lambda x: x != 0)
-            .to_frame("duplicate_id")
-            .reset_index()
-        )
 
-        gene_df_copy["_symbol"] = gene_df_copy["_symbol"].where(
-            ~gene_df_copy["_symbol"].duplicated(keep="first"),
-            duplicate_id["_symbol"] + "-" + duplicate_id["duplicate_id"].astype(str)
-        )
+        ## add a tag to duplicate symbol, and give priority to symbol with already existing tag.
+        # Step 2: Group by base symbol (excluding suffixes)
+        gene_df_copy["base_symbol"] = gene_df_copy["_symbol"].apply(lambda x: re.sub(r'-\d+$', '', x))
+        used_symbols = set(gene_df_copy["_symbol"])  # All existing symbols
 
+        # Step 3: Track renaming per base
+        seen = {}
+        new_symbols = []
+
+        for _, row in gene_df_copy.iterrows():
+            symbol = row["_symbol"]
+            base = row["base_symbol"]
+
+            # Leave already-suffixed symbols alone
+            if is_tagged(symbol):
+                new_symbols.append(symbol)
+                continue
+
+            count = seen.get(base, 0)
+
+            if count == 0:
+                new_symbol = symbol
+            else:
+                # Find next available tag not already used
+                i = count
+                while True:
+                    candidate = f"{base}-{i}"
+                    if candidate not in used_symbols:
+                        break
+                    i += 1
+                new_symbol = candidate
+                used_symbols.add(new_symbol)
+
+            seen[base] = count + 1
+            new_symbols.append(new_symbol)
+
+        gene_df_copy["_symbol"] = new_symbols
+
+        # Step 4: Re-integrate
         gene_df = gene_df.set_index("ensembl_id")
         gene_df["_symbol"] = gene_df_copy.set_index("ensembl_id").reindex(gene_df.index)["_symbol"]
         gene_df = gene_df.reset_index()
