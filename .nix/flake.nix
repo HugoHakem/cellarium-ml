@@ -30,13 +30,17 @@
           config.allowUnfree = true;
           config.cudaSupport = true;
         };
+        customPackages = import ./packages { inherit pkgs; };
 
         # General packages for your dev shell
         packages = (with pkgs; [
           pandoc
           # e.g., duckdb 
-        ]) ++ (with mpkgs; [
-          uv  # pull latest uv from nixpkgs master
+        ]) ++ (with mpkgs; [# latest nixpkgs master
+          uv
+        ]) ++ (with customPackages; [
+          ncbi-datasets-cli
+          ncbi-dataformat-cli
         ]);
 
         venvDir = "./.venv";
