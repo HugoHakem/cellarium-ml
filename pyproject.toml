@@ -75,6 +75,7 @@ tune = [
   "datasets",
   "zarr<3.0", # not suppordet by anndata otherwise
   "numcodecs<0.16", # solve zarr
+  "lxml", # fo pandas read_html
 ]
 dev = ["cellarium-ml[docs,lint,mypy,test,tune]"]
 
