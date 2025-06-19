@@ -44,6 +44,7 @@
         ]);
 
         venvDir = "./.venv";
+        venvBinLinks = [ pkgs.pandoc ]; # e.g, pkgs.pandoc may be required for some python lib and this make sure they are available
         
       in
       with pkgs;
@@ -70,9 +71,17 @@
                   echo "Creating new venv environment in path: '${venvDir}'"
                   uv venv "${venvDir}"
 
-                  # Create symlink to pandoc inside .venv/bin immediately after venv creation
-                  ln -s "$(which pandoc)" "${venvDir}/bin/pandoc"
-                  echo "Symlinked pandoc into ${venvDir}/bin"
+                  # Symlink selected binaries into .venv/bin if any are specified
+                  if [ ${toString (builtins.length venvBinLinks)} -gt 0 ]; then
+                    echo "Linking requested CLI tools into ${venvDir}/bin..."
+                  ${lib.concatStringsSep "\n" (map (pkg: ''
+                    for bin in ${pkg}/bin/*; do
+                      ln -sf "$bin" "${venvDir}/bin/$(basename "$bin")"
+                      echo " → Linked $(basename "$bin")"
+                    done
+                  '') venvBinLinks)}
+                  fi
+
                 fi
 
                 # FEEL FREE TO UPDATE WITH --extra name-of-extra-dependencies-in-pyproject.toml

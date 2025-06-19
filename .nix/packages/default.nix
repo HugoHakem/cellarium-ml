@@ -1,16 +1,29 @@
-# packages/default.nix
 { pkgs }:
 
 let
   # List all .nix files in the directory (excluding this one)
-  packageFiles = builtins.filter
-    (file: file != "default.nix")
-    (builtins.attrNames (builtins.readDir ./.));
+  dir = ./.;
 
-  # Import each package file and merge their outputs into one attrset
+  packageFiles = builtins.filter
+    (file:
+      let
+        path = dir + "/${file}";
+        fileType = (builtins.readDir dir)."${file}";
+      in
+        file != "default.nix" &&
+        (
+          # Keep regular .nix files
+          (fileType == "regular" && builtins.match ".*\\.nix$" file != null)
+          ||
+          # Also allow directories that contain a default.nix
+          (fileType == "directory" && builtins.pathExists (path + "/default.nix"))
+        )
+    )
+    (builtins.attrNames (builtins.readDir dir));
+
   packageAttrs = builtins.foldl'
     (acc: file:
-      acc // import (./. + "/${file}") { inherit pkgs; })
+      acc // import (dir + "/${file}") { inherit pkgs; })
     {}
     packageFiles;
 in
