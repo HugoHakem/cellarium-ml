@@ -1,7 +1,7 @@
 data_path: fine_tune/datasets/genome
 organism: human
-gencode_version: null
-ensembl_version: 111
+gencode_version: 33 
+ensembl_version: null # corresponds to ensembl 99 (the latest availabl and closest to ensembl v98, gencode v32)
 host: null
 attrs:
 - ensembl_gene_id
