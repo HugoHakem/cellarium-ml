@@ -131,10 +131,10 @@ def gencode_to_ensembl(
         tables
     )
     gencode_release.columns = [col.strip() for col in gencode_release.columns]
-    gencode_release["GENCODE version"] = gencode_release["GENCODE version"].astype(str)
+    gencode_release["GENCODE release"] = gencode_release["GENCODE release"].astype(str)
     gencode_release["Ensembl release"] = gencode_release["Ensembl release"].astype(str)
 
-    gencode_release = gencode_release.set_index("GENCODE version")["Ensembl release"]
+    gencode_release = gencode_release.set_index("GENCODE release")["Ensembl release"]
 
     if gencode_version not in gencode_release:
         raise ValueError(
