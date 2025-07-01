@@ -19,28 +19,25 @@
     flake-utils.lib.eachDefaultSystem (
       system:
       let
-        pkgs = import nixpkgs {
-          inherit system;
-          config.allowUnfree = true;
-          config.cudaSupport = true;
-        };
-
         mpkgs = import inputs.nixpkgs_master {
           inherit system;
           config.allowUnfree = true;
           config.cudaSupport = true;
         };
-        customPackages = import ./packages { inherit pkgs; };
+
+        pkgs = import nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+          config.cudaSupport = true;
+          overlays = import ./overlays { inherit system mpkgs; };
+        };
 
         # General packages for your dev shell
         packages = (with pkgs; [
           pandoc
-          # e.g., duckdb 
-        ]) ++ (with mpkgs; [# latest nixpkgs master
-          uv
-        ]) ++ (with customPackages; [
           ncbi-datasets-cli
           ncbi-dataformat-cli
+          uv
         ]);
 
         venvDir = "./.venv";
@@ -51,7 +48,8 @@
       {
         devShells = {
           default =
-            mkShell {
+            mkShell {          
+              name = "uv";
               packages = packages;
               shellHook = ''
                 # Forces uv to never download its own Python interpreter (only use the system one).
