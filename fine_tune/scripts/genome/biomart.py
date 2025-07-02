@@ -304,11 +304,15 @@ def get_biomart(
     ## Infer host using ensembl_version or gencode_version
     if host is None:
         org_display = format_organism(organism=organism, get_display_name=True, use_cache=use_cache)
-        org_name = format_organism(organism=organism, get_display_name=False, use_cache=use_cache)
         if gencode_version is not None and ensembl_version is None:
             ensembl_version = gencode_to_ensembl(gencode_version, organism=org_display)
+        elif ensembl_version is None:
+            raise ValueError(
+                "Both `ensembl_vesion` and `gencode_version` are None. Please provide one of those."
+            )
         host = ensembl_to_host(ensembl_version, organism=org_display)
 
+    org_name = format_organism(organism=organism, get_display_name=False, use_cache=use_cache)
     server = Server(host, use_cache=use_cache)
     dataset = server.marts["ENSEMBL_MART_ENSEMBL"].datasets[f"{org_name}_gene_ensembl"]
     try:

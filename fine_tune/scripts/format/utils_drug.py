@@ -14,8 +14,7 @@ def _canonicalize_smiles(smiles: str) -> str:
     Returns:
         str: The canonicalized SMILES string.
     """
-    mol = Chem.MolFromSmiles(smiles)
-    return Chem.MolToSmiles(mol, canonical=True)
+    return Chem.CanonSmiles(smiles, useChiral=1)
 
 
 def normalize_drug_fields(df: pd.DataFrame) -> pd.DataFrame:

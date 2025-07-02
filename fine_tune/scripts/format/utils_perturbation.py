@@ -161,7 +161,7 @@ def _build_perturbation_id(row: pd.Series) -> str:
     return "+".join(pert_ids) if pert_ids else "control"
 
 
-def assign_perturbation_id(df: pd.DataFrame, inplace: bool = True) -> pd.DataFrame:
+def assign_perturbation_id(df: pd.DataFrame, inplace: bool = True) -> pd.DataFrame|None:
     """
     Add a 'perturbation_id' column to a DataFrame based on perturbation metadata.
 

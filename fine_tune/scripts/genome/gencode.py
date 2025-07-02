@@ -193,7 +193,7 @@ def get_clone_name(
                 row["CloneName"]
                 if pd.notna(row["CloneName"])
                 else (
-                    clone_df.loc[clone_df["Accession"] == row["Accession"], "CloneName"].iloc[0]
+                    clone_df.loc[clone_df["Accession"] == row["Accession"], "CloneName"].iloc[0] # type: ignore
                     if row["Unique_Accession"]
                     else row["CloneName"] # NaN
                 ),
@@ -441,7 +441,7 @@ def build_ref_genome(
         )
         # Update symbol
         if use_hgnc:
-            gene_allow_df = get_hgnc_symbol(gene_allow_df, data_path=data_path, hgnc_date=hgnc_date)
+            gene_allow_df = get_hgnc_symbol(gene_allow_df, data_path=data_path, hgnc_date=hgnc_date) # type: ignore
         if use_clone:
             gene_allow_df = get_clone_name(gene_allow_df, data_path=data_path, allow_accession=allow_accession)
         # format duplicate: NaN -> ensembl_id, duplicate -> either ensembl_id or indexed with num tag.

@@ -118,7 +118,7 @@ class MetadataDict(dict):
 # === SECTION: Format Obs ===
 
 
-def cast_obs_types(obs: pd.DataFrame, obs_dtype_map=dict):
+def cast_obs_types(obs: pd.DataFrame, obs_dtype_map: dict):
     """
     Casts columns of a DataFrame to specified data types.
 
@@ -257,7 +257,7 @@ def format_var(
     """
 
     adata.var["UMI_count"] = pd.Series(
-        np.asarray(adata.X.sum(axis=0)).ravel(),
+        np.asarray(adata.X.sum(axis=0)).ravel(), # type: ignore
         index=adata.var_names
     )
     adata.var["measured"] = True
