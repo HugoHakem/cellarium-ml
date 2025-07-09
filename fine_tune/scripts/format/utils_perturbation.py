@@ -50,7 +50,7 @@ def infer_perturbation_type(obs: pd.DataFrame, gene_pert_type: Optional[str]) ->
                 )
             return "+".join(
                 [gene_pert_type] * g_count +
-                ["drug"] * d_count
+                ["drug"] * d_count              # type: ignore
             ) if total_count > 0 else None
 
         parts = default.split("+")
@@ -212,4 +212,5 @@ def assign_perturbation_id(df: pd.DataFrame, inplace: bool = True) -> pd.DataFra
     _df["perturbation_id"] = _df.apply(_build_perturbation_id, axis=1)
     if not inplace:
         return _df
+    return None
 

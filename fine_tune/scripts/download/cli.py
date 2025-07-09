@@ -51,7 +51,7 @@ def file_map_deserializer(val: dict) -> FileMap:
     if not isinstance(val, dict):
         raise ValueError("Expected a dict for FileMap")
 
-    parsed = {}
+    parsed: FileMap = {}
     for key, v in val.items():
         # Accept a FileEntry directly
         if isinstance(v, FileEntry):

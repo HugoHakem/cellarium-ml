@@ -267,7 +267,7 @@ def format_duplicate_symbol(
         used_symbols = set(gene_df_copy["_symbol"])  # All existing symbols
 
         # Step 3: Track renaming per base
-        seen = {}
+        seen: dict[str, int] = {}
         new_symbols = []
 
         for _, row in gene_df_copy.iterrows():
@@ -362,8 +362,7 @@ def build_ref_genome(
         None
     """
 
-    if isinstance(data_path, str):
-        data_path = Path(data_path)
+    data_path = Path(data_path)
     if (use_hgnc and hgnc_date is None):
         raise ValueError(
             "Unexpected `hgnc_date`. `use_hgnc` is set to True, yet `hgnc_date` is None. " \

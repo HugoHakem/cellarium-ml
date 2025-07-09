@@ -365,8 +365,7 @@ def get_biomart(
         res = res.rename(columns={k: v for k, v in rename_columns.items() if k in res.columns})
 
     # Save to disk
-    if isinstance(data_path, str):
-        data_path = Path(data_path)
+    data_path = Path(data_path)
     data_path.mkdir(parents=True, exist_ok=True)
     if data_path.suffix not in [".csv", ".tsv"]:
         if gencode_version is not None:

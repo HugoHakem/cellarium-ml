@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Optional
 from zipfile import ZipFile
 
-import requests
+import requests  # type: ignore
 
 from .utils import (
     FileEntry,
@@ -110,7 +110,7 @@ def download_url(
 
             # Clean up tmp_dir
             shutil.rmtree(tmp_dir)
-    elif len(ext := save_path.suffixes) > 1:
+    elif len(ext := save_path.suffixes) > 1: # type: ignore
         Warning(
             "The downloaded file sounds like being compressed, but the decompression scheme" \
             "doesn't support this file extension.\n" \
