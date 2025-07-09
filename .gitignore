@@ -32,9 +32,17 @@ output/
 *.sqlite
 *.xlsx
 *.zarr/
+# bowtie pipeline
+*.sam
+*.fa
+*.fa.gz
+*.gtf
+*.gtf.gz
+*.ebwt
 
 
 # nix environment
 .envrc
 .direnv
 .venv
+.python-version

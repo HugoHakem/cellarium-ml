@@ -77,7 +77,10 @@ tune = [
   "numcodecs<0.16", # solve zarr
   "lxml", # fo pandas read_html
 ]
-dev = ["cellarium-ml[docs,lint,mypy,test,tune]"]
+alignment = [
+  "pysam",
+]
+dev = ["cellarium-ml[docs,lint,mypy,test,tune,alignment]"]
 
 [project.scripts]
 cellarium-ml = "cellarium.ml.cli:main"

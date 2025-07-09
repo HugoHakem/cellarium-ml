@@ -38,6 +38,8 @@
           ncbi-datasets-cli
           ncbi-dataformat-cli
           uv
+          bowtie
+          samtools
         ]);
 
         venvDir = "./.venv";
@@ -52,10 +54,6 @@
               name = "uv";
               packages = packages;
               shellHook = ''
-                # Forces uv to never download its own Python interpreter (only use the system one).
-                # https://nixos.wiki/wiki/Python#:~:text=You%20won%27t%20be%20able%20to%20use%20Python%20binaries%20installed%20by%20uv.%20Make%20sure%20to%20set%20the%20UV_PYTHON_DOWNLOADS%3Dnever%20environment%20variable%20in%20your%20shell%20to%20stop%20uv%20from%20downloading%20Python%20binaries.
-                # export UV_PYTHON_DOWNLOADS=never
-
                 # Avoid annoying prompts from keyring libraries asking for gnome-keyring, kwallet, etc. (especially useful on headless servers).
                 export PYTHON_KEYRING_BACKEND=keyring.backends.fail.Keyring
 

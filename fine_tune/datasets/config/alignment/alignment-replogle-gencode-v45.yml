@@ -1,0 +1,8 @@
+csv_paths:
+  - fine_tune/datasets/anndata/raw_replogle/Target_TabA_K562_day8_library.csv
+  - fine_tune/datasets/anndata/raw_replogle/Target_TabB_K562_day6_library.csv
+  - fine_tune/datasets/anndata/raw_replogle/Target_TabC_RPE1_day7_library.csv
+out_root: fine_tune/datasets/genome/replogle
+gencode_version: 45
+n_mismatch: 1
+cleanup: false

@@ -1,1 +1,1 @@
-.. include:: ../../.nix/packages/README.rst
+.. include:: ../../.nix/overlays/README.rst

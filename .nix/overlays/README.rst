@@ -1,5 +1,5 @@
 Custom Packages Directory
-========================
+=========================
 
 This folder is intended for defining custom Nix packages that are not available in the `Nix Packages collection <https://search.nixos.org/packages>`_.
 
