@@ -303,18 +303,32 @@ def find_gene(chrom, pos, gene_intervals) -> tuple[str|None, str|None]:
     return None, None
 
 
-def annotate_alignments(sam_path: Path, gtf_path: Path) -> pd.DataFrame:
+def annotate_alignments(
+    sam_path: Path,
+    gtf_path: Optional[Path]=None,
+    gene_intervals: Optional[dict]=None
+) -> pd.DataFrame:
     """
     Annotate aligned target sequences with gene information from a GTF file.
 
     Args:
         sam_path (Path): Path to the SAM file with alignments.
-        gtf_path (Path): Path to the GTF annotation file.
+        gtf_path (Path, optional): Path to the GTF annotation file. Used to compute `gene_intervals` if not provided.
+        gene_intervals (dict, optional): Precomputed gene interval mapping, as returned by `load_gtf_annotations`.
 
     Returns:
-        pd.DataFrame: DataFrame with annotated alignment results, including gene IDs and names.
+        pd.DataFrame: Annotated alignment results including Ensembl gene IDs and gene names.
+
+    Raises:
+        ValueError: If both `gtf_path` and `gene_intervals` are provided, or if neither is provided.
     """
-    gene_intervals = load_gtf_annotations(gtf_path)
+    if (gtf_path is not None) and (gene_intervals is not None):
+        raise ValueError("Only one of `gtf_path` or `gene_intervals` must be provided, not both.")
+    if (gtf_path is None) and (gene_intervals is None):
+        raise ValueError("One of `gtf_path` or `gene_intervals` must be provided.")
+    if gtf_path is not None:
+        gene_intervals = load_gtf_annotations(gtf_path)
+
     samfile = pysam.AlignmentFile(str(sam_path), "r")
     alignment_data = defaultdict(list)
 
@@ -432,6 +446,7 @@ def main(
     tmp_dir = out_root / "tmp"
     ref_dir = tmp_dir / "reference"
     gtf, index_prefix = prepare_reference(ref_dir, gencode_version)
+    gene_intervals = load_gtf_annotations(gtf)
 
     csv_paths = csv_paths if isinstance(csv_paths, list) else [csv_paths]
 
@@ -445,7 +460,7 @@ def main(
         sam_out = tmp_dir / f"{sample_name}_aligned.sam"
         align_targets(index_prefix, fasta_targets, sam_out, n_mismatch=n_mismatch)
 
-        annotated_df = annotate_alignments(sam_out, gtf)
+        annotated_df = annotate_alignments(sam_out, gene_intervals=gene_intervals)
         annotated_df = process_annotated_df(annotated_df, template_csv_path=csv_path)
 
         output_csv = out_root / f"{sample_name}_aligned_gencode_v{gencode_version}.csv"
