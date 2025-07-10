@@ -141,7 +141,7 @@ def prepare_reference(ref_dir: Path, gencode_version: int) -> tuple[Path, Path]:
     if fasta.exists():
         print(f"Uncompressed file already exists: {fasta}")
     else:
-        download_file(f"{base_url}/gencode.v{gencode_version}.primary_assembly.genome.fa.gz", fasta_gz)
+        download_file(f"{base_url}/GRCh38.primary_assembly.genome.fa.gz", fasta_gz)
         gunzip_file(fasta_gz)
 
     index_prefix = ref_dir / "genome_index"
