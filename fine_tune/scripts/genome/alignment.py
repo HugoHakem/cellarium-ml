@@ -1,3 +1,4 @@
+import bisect
 import gzip
 import re
 import shutil
@@ -6,12 +7,14 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Optional, Union
 
+import numpy as np
 import pandas as pd
 import pysam
 import requests  # type: ignore
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
+from intervaltree import Interval, IntervalTree
 from jsonargparse import CLI
 
 # === SECTION: Check for tools dependencies ===
@@ -92,13 +95,16 @@ def gunzip_file(gz_path: Path, out_path: Optional[Path]=None) -> Path:
     return out_path
 
 
-def build_bowtie_index(fasta_path: Path, index_prefix: Path) -> None:
+def build_bowtie_index(fasta_path: Path, index_prefix: Path, n_thread: int=1) -> None:
     """
     Build a Bowtie index from a FASTA file if it does not already exist.
 
     Args:
         fasta_path (Path): Path to the reference FASTA file.
         index_prefix (Path): Prefix for the Bowtie index files.
+        n_thread (int): Number of threads to use for index building. Default is 1.
+            Note: Bowtie index building is only partly parallelizable, and
+            multithreading support depends on how Bowtie was compiled.
 
     Returns:
         None
@@ -110,16 +116,19 @@ def build_bowtie_index(fasta_path: Path, index_prefix: Path) -> None:
         print(f"Bowtie index already exists at: {index_prefix}")
         return
     print("Building bowtie index...")
-    subprocess.run(["bowtie-build", str(fasta_path), str(index_prefix)], check=True)
+    subprocess.run(["bowtie-build", "--threads", str(n_thread), str(fasta_path), str(index_prefix)], check=True)
 
 
-def prepare_reference(ref_dir: Path, gencode_version: int) -> tuple[Path, Path]:
+def prepare_reference(ref_dir: Path, gencode_version: int, n_thread: int=1) -> tuple[Path, Path]:
     """
     Download and prepare GENCODE reference files (GTF and genome FASTA), and build Bowtie index.
 
     Args:
         ref_dir (Path): Directory to store reference files and index.
         gencode_version (int): GENCODE release version to use.
+        n_thread (int): Number of threads to use for index building. Default is 1.
+            Note: Bowtie index building is only partly parallelizable, and
+            multithreading support depends on how Bowtie was compiled.
 
     Returns:
         tuple[Path, Path]: Paths to the GTF annotation file and Bowtie index prefix.
@@ -145,7 +154,7 @@ def prepare_reference(ref_dir: Path, gencode_version: int) -> tuple[Path, Path]:
         gunzip_file(fasta_gz)
 
     index_prefix = ref_dir / "genome_index"
-    build_bowtie_index(fasta, index_prefix)
+    build_bowtie_index(fasta, index_prefix, n_thread=n_thread)
 
     return gtf, index_prefix
 
@@ -255,7 +264,7 @@ def align_targets(index_prefix: Path, fasta_in: Path, sam_out: Path, n_mismatch:
     print(f"SAM file written to: {sam_out}")
 
 
-def load_gtf_annotations(gtf_path: Path) -> dict:
+def load_gtf_annotations(gtf_path: Path) -> dict[str, IntervalTree]:
     """
     Parse a GTF annotation file and extract gene intervals.
 
@@ -266,90 +275,142 @@ def load_gtf_annotations(gtf_path: Path) -> dict:
         dict: Dictionary mapping chromosome names to lists of gene intervals (start, end, gene_id, gene_name).
     """
     print("Parsing GTF file...")
-    gene_intervals = defaultdict(list)
+    gene_interval_trees: dict[str, IntervalTree] = defaultdict(IntervalTree)
 
     with open(gtf_path) as f:
         for line in f:
             if line.startswith("#"):
                 continue
             fields = line.strip().split('\t')
-            if fields[2] not in {"gene", "transcript"}:
+            if fields[2] not in {"gene"}: # only interested by the gene annotation
                 continue
             chrom, start, end, info = fields[0], int(fields[3]), int(fields[4]), fields[8]
             attr_pairs = dict(re.findall(r'(\S+) "([^"]+)"', info))
             gene_id = attr_pairs.get("gene_id")
             gene_name = attr_pairs.get("gene_name")
             if gene_id and gene_name:
-                gene_intervals[chrom].append((start, end, gene_id, gene_name))
+                gene_interval_trees[chrom][start:end+1] = (gene_id, gene_name) # end is exclusive
 
-    return gene_intervals
+    return gene_interval_trees
 
-
-def find_gene(chrom, pos, gene_intervals) -> tuple[str|None, str|None]:
+def find_genes(
+    chrom: str, pos: int, trees: dict[str, IntervalTree]
+) -> list[Interval]:
     """
-    Find the gene overlapping a given chromosome and position.
+    Find genes overlapping a given position using an interval tree.
 
     Args:
-        chrom (str): Chromosome name.
-        pos (int): Genomic position (1-based).
-        gene_intervals (dict): Dictionary of gene intervals as returned by load_gtf_annotations.
+        chrom (str): Chromosome name
+        pos (int): 1-based position
+        trees (dict): Precomputed IntervalTree for each chromosome
 
     Returns:
-        tuple[str|None, str|None]: (gene_id, gene_name) if found, otherwise (None, None).
+        list[tuple[str|None, str|None]]: Overlapping (gene_id, gene_name) or [(None, None)]
     """
-    for start, end, gene_id, gene_name in gene_intervals.get(chrom, []):
-        if start <= pos <= end:
-            return gene_id, gene_name
-    return None, None
+    tree = trees.get(chrom)
+    if not tree:
+        return []
+
+    # IntervalTree expects 0-based, half-open interval: [start, end)
+    hits = tree[pos]
+    if not hits:
+        # No hits: find closest interval using binary search
+        intervals_start = sorted(tree)
+        intervals_end = sorted(tree, key=lambda x: x[1]) # type:ignore
+
+        starts = [iv.begin for iv in intervals_start]
+        ends = [iv.end for iv in intervals_end]
+
+        i_start = bisect.bisect_right(starts, pos)
+        i_end = bisect.bisect_left(ends, pos)
+
+        # Look at neighbors: [i - 1] and [i]
+        candidates = []
+        if i_start < len(intervals_start):
+            candidates.append(intervals_start[i_start])
+        if i_start > 0:
+            candidates.append(intervals_start[i_start - 1])
+
+        if i_end < len(intervals_start):
+            candidates.append(intervals_end[i_end])
+        if i_end > 0:
+            candidates.append(intervals_end[i_end - 1])
+
+        # Choose the one with minimal distance
+        def dist(iv):
+            if iv.begin > pos:
+                return iv.begin - pos
+            elif iv.end < pos:
+                return pos - iv.end
+            else:
+                return 0  # shouldn't happen
+
+        closest = min(candidates, key=dist)
+        return [closest]
+    return list(hits)
 
 
 def annotate_alignments(
     sam_path: Path,
     gtf_path: Optional[Path]=None,
-    gene_intervals: Optional[dict]=None
+    gene_interval_trees: Optional[dict]=None,
+    keep_best_only: bool=False,
+    smallest_interval: bool=False
 ) -> pd.DataFrame:
     """
     Annotate aligned target sequences with gene information from a GTF file.
 
     Args:
         sam_path (Path): Path to the SAM file with alignments.
-        gtf_path (Path, optional): Path to the GTF annotation file. Used to compute `gene_intervals` if not provided.
-        gene_intervals (dict, optional): Precomputed gene interval mapping, as returned by `load_gtf_annotations`.
+        gtf_path (Path, optional): Path to the GTF annotation file. Used to compute `gene_interval_trees`.
+        gene_interval_trees (dict, optional): Precomputed gene interval mapping, as returned by `load_gtf_annotations`.
+        keep_best_only (bool, optional): If True, will keep the annotation with the smallest nucleotide mismatch.
+            In case of multiple annotation with the same nucleotide mismatch, keep them all. If False (default),
+            return every bowtie matches that has name overlaping for targeting sequence A and B.
+        smallest_interval (bool, optional): If True, return only the smallest overlapping interval
+            that contains both A and B.
 
     Returns:
         pd.DataFrame: Annotated alignment results including Ensembl gene IDs and gene names.
 
     Raises:
-        ValueError: If both `gtf_path` and `gene_intervals` are provided, or if neither is provided.
+        ValueError: If both `gtf_path` and `gene_interval_trees` are provided, or if neither is provided.
     """
-    if (gtf_path is not None) and (gene_intervals is not None):
-        raise ValueError("Only one of `gtf_path` or `gene_intervals` must be provided, not both.")
-    if (gtf_path is None) and (gene_intervals is None):
-        raise ValueError("One of `gtf_path` or `gene_intervals` must be provided.")
+    if (gtf_path is not None) and (gene_interval_trees is not None):
+        raise ValueError("Only one of `gtf_path` or `gene_interval_trees` must be provided, not both.")
+    if (gtf_path is None) and (gene_interval_trees is None):
+        raise ValueError("One of `gtf_path` or `gene_interval_trees` must be provided.")
     if gtf_path is not None:
-        gene_intervals = load_gtf_annotations(gtf_path)
+        gene_interval_trees = load_gtf_annotations(gtf_path)
 
     samfile = pysam.AlignmentFile(str(sam_path), "r")
     alignment_data = defaultdict(list)
 
+    print("Retrieve annotation using the GTF file and SAM file...")
     for read in samfile:
         if read.is_unmapped:
             continue
         query_name = read.query_name
-        chrom = read.reference_name
+        chrom = str(read.reference_name)
         pos = read.reference_start
-        nm_tag = read.get_tag("NM") if read.has_tag("NM") else 0
-        gene_id, gene_name = find_gene(chrom, pos, gene_intervals)
-        if gene_id and query_name:
-            alignment_data[query_name].append(
-                {
-                    "ensembl_id": gene_id.rsplit(".", 1)[0], # remove version tag if any
-                    "gene_name": gene_name,
-                    "nm_score": nm_tag,
-                    "chrom": chrom,
-                    "pos": pos
-                }
-            )
+        nm_tag = float(read.get_tag("NM")) if read.has_tag("NM") else np.nan
+        gene_ids_names = find_genes(chrom, pos, gene_interval_trees) # type: ignore
+        if gene_ids_names:
+            for iv in gene_ids_names:
+                gene_id, gene_name = iv.data
+                start, end = iv.begin, iv.end - 1
+                if gene_id and query_name:
+                    alignment_data[query_name].append(
+                        {
+                            "ensembl_id": gene_id.rsplit(".", 1)[0], # remove version tag if any
+                            "gene_name": gene_name,
+                            "nm_score": nm_tag,
+                            "chrom": chrom,
+                            "pos": pos,
+                            "gene_start": start,
+                            "gene_end": end
+                        }
+                    )
     # Match target_A and target_B pairs
     results = []
     keys = sorted(set(k.rsplit("_", 1)[0] for k in alignment_data.keys()))
@@ -362,17 +423,30 @@ def annotate_alignments(
         for g_a in a_hits:
             for g_b in b_hits:
                 if g_a["ensembl_id"] == g_b["ensembl_id"]:
-                    total_nm = g_a["nm_score"] + g_b["nm_score"] # type: ignore
+                    nm_list: list[float] = [g_a["nm_score"], g_b["nm_score"]] # type: ignore
+                    if not np.isnan(nm_list).all():
+                        total_nm = np.nansum(nm_list)
+                    else:
+                        total_nm = np.nan
                     candidates.append({
                         "ensembl_id" : g_a["ensembl_id"],
                         "gene_name": g_a["gene_name"],
                         "total_nm": total_nm,
-                        "chrom_a": g_a["chrom"], "pos_a": g_a["pos"],
-                        "chrom_b": g_b["chrom"], "pos_b": g_b["pos"],
+                        "chrom": g_a["chrom"],
+                        "gene_start": g_a["gene_start"], "gene_end": g_a["gene_end"],
+                        "pos_a": g_a["pos"], "pos_b": g_b["pos"],
                     })
+
         if candidates:
-            best_nm = min(c["total_nm"] for c in candidates) # type: ignore
-            best_matches = [c for c in candidates if c["total_nm"] == best_nm]
+            if keep_best_only:
+                best_nm: float = min(c["total_nm"] for c in candidates)
+                best_matches = [c for c in candidates if c["total_nm"] == best_nm]
+            else:
+                best_matches = candidates
+
+            if smallest_interval:
+                best_matches = [min(best_matches, key=lambda match: match["gene_end"] - match["gene_start"])]
+
             for match in best_matches:
                 results.append({
                     "gene_id": base_key,
@@ -380,6 +454,7 @@ def annotate_alignments(
                 })
 
     return pd.DataFrame(results)
+
 
 
 def process_annotated_df(df: pd.DataFrame, template_csv_path: Path) -> pd.DataFrame:
@@ -423,30 +498,42 @@ def main(
     out_root: Path=Path("output"),
     gencode_version: int=45,
     n_mismatch: int=1,
-    cleanup: bool=False,
+    keep_best_only: bool=False,
+    smallest_interval: bool=False,
+    n_thread: int=1,
+    cleanup: bool=False
 ):
     """
     Run the full workflow for aligning target sequences to a reference genome, annotating, and saving results.
 
-    This function processes one or more CSV files containing target sequences, aligns them to a reference genome
-    using Bowtie, annotates the alignments with gene information from a GTF file, deduplicates and merges results,
-    and writes the final annotated CSVs to disk. Optionally, it cleans up intermediate files.
+    This function processes one or more CSV files containing two target sequences for a same gene,
+    aligns them to a reference genome using Bowtie, annotates the alignments with gene information from a GTF file,
+    deduplicates and merges results, and writes the final annotated CSVs to disk.
 
     Args:
         csv_paths (Path or list[Path]): Path(s) to input CSV file(s) with target sequences.
         out_root (Path, optional): Output directory for results and intermediate files. Defaults to "output".
         gencode_version (int, optional): GENCODE release version to use for reference files. Defaults to 45.
         n_mismatch (int, optional): Maximum number of mismatches allowed in alignments. Defaults to 1.
+        keep_best_only (bool, optional): If True, will keep the annotation with the smallest nucleotide mismatch.
+            In case of multiple annotation with the same nucleotide mismatch, keep them all. If False (default),
+            return every bowtie matches that has name overlaping for targeting sequence A and B.
+        smallest_interval (bool, optional): If True, return only the smallest overlapping interval
+            that contains both A and B.
+        n_thread (int): Number of threads to use for index building. Default is 1.
+            Note: Bowtie index building is only partly parallelizable, and
+            multithreading support depends on how Bowtie was compiled.
         cleanup (bool, optional): If True, remove intermediate files after processing. Defaults to False.
+
 
     Returns:
         None
     """
     out_root = Path(out_root)
     tmp_dir = out_root / "tmp"
-    ref_dir = tmp_dir / "reference"
-    gtf, index_prefix = prepare_reference(ref_dir, gencode_version)
-    gene_intervals = load_gtf_annotations(gtf)
+    ref_dir = tmp_dir / f"reference/gencode_v{gencode_version}"
+    gtf, index_prefix = prepare_reference(ref_dir, gencode_version, n_thread=n_thread)
+    gene_interval_trees = load_gtf_annotations(gtf)
 
     csv_paths = csv_paths if isinstance(csv_paths, list) else [csv_paths]
 
@@ -460,7 +547,10 @@ def main(
         sam_out = tmp_dir / f"{sample_name}_aligned.sam"
         align_targets(index_prefix, fasta_targets, sam_out, n_mismatch=n_mismatch)
 
-        annotated_df = annotate_alignments(sam_out, gene_intervals=gene_intervals)
+        annotated_df = annotate_alignments(
+            sam_out, gene_interval_trees=gene_interval_trees,
+            keep_best_only=keep_best_only, smallest_interval=smallest_interval
+            )
         annotated_df = process_annotated_df(annotated_df, template_csv_path=csv_path)
 
         output_csv = out_root / f"{sample_name}_aligned_gencode_v{gencode_version}.csv"

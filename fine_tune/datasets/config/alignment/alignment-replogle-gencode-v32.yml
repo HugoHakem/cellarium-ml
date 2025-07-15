@@ -1,7 +1,7 @@
 csv_paths:
   - fine_tune/datasets/anndata/raw_replogle/Target_Table_S1_merged.csv
 out_root: fine_tune/datasets/genome/replogle
-gencode_version: 45
+gencode_version: 32
 n_mismatch: 3
 keep_best_only: false
 smallest_interval: false
