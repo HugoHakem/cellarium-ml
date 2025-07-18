@@ -1,0 +1,15 @@
+targets_paths:
+  - fine_tune/datasets/anndata/raw_replogle/Target_Table_S1_merged.csv
+targets_key_maps:
+  - null
+out_dir: fine_tune/datasets/alignment/replogle
+gencode_version: 32
+tool: bowtie
+aligner_kwargs: null # full list: https://bowtie-bio.sourceforge.net/manual.shtml at [Command Line]
+n_mismatch: 3
+n_thread: 10
+densify_gene_interval: true
+split_holes_equally: true
+keep_best_only: false
+smallest_interval: false
+cleanup: false

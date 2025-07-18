@@ -32,6 +32,7 @@ output/
 *.sqlite
 *.xlsx
 *.zarr/
+
 # bowtie pipeline
 *.sam
 *.fa
@@ -40,6 +41,17 @@ output/
 *.gtf.gz
 *.ebwt
 
+#blast pipeline
+*.ndb
+*.nhr
+*.nin
+*.njs
+*.nog
+*.nos
+*.not
+*.nsq
+*.ntf
+*.nto
 
 # nix environment
 .envrc

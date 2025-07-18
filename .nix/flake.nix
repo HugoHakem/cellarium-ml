@@ -34,12 +34,13 @@
 
         # General packages for your dev shell
         packages = (with pkgs; [
+          uv
           pandoc
           ncbi-datasets-cli
           ncbi-dataformat-cli
-          uv
           bowtie
           samtools
+          blast-bin
         ]);
 
         venvDir = "./.venv";

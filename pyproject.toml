@@ -121,3 +121,6 @@ warn_unreachable = true
 ignore_directives = [
   "automodule"
 ]
+
+[tool.uv.sources]
+intervaltree = { git =" https://github.com/chaimleib/intervaltree.git", rev="01a30a8df977a02e1b6e25eee3838b8d6b340995"}

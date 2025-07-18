@@ -571,7 +571,7 @@ requires-dist = [
     { name = "fastcluster", marker = "extra == 'tune'" },
     { name = "google-cloud-storage" },
     { name = "igraph", marker = "extra == 'tune'" },
-    { name = "intervaltree", marker = "extra == 'alignment'" },
+    { name = "intervaltree", marker = "extra == 'alignment'", git = "https://github.com/chaimleib/intervaltree.git?rev=01a30a8df977a02e1b6e25eee3838b8d6b340995" },
     { name = "jsonargparse", extras = ["signatures"], specifier = "==4.27.7" },
     { name = "jupyter", marker = "extra == 'tune'" },
     { name = "lightning", specifier = ">=2.2.0" },
@@ -1757,12 +1757,11 @@ wheels = [
 
 [[package]]
 name = "intervaltree"
-version = "3.1.0"
-source = { registry = "https://pypi.org/simple" }
+version = "3.2.0"
+source = { git = "https://github.com/chaimleib/intervaltree.git?rev=01a30a8df977a02e1b6e25eee3838b8d6b340995#01a30a8df977a02e1b6e25eee3838b8d6b340995" }
 dependencies = [
     { name = "sortedcontainers" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/50/fb/396d568039d21344639db96d940d40eb62befe704ef849b27949ded5c3bb/intervaltree-3.1.0.tar.gz", hash = "sha256:902b1b88936918f9b2a19e0e5eb7ccb430ae45cde4f39ea4b36932920d33952d", size = 32861, upload-time = "2020-08-03T08:01:11.392Z" }
 
 [[package]]
 name = "ipykernel"
