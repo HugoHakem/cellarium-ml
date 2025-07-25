@@ -1,0 +1,10 @@
+cfg:
+  use_key_name: true
+  file_map:    
+    raw_xatlas_orion:
+      HCT116_filtered_dual_guide_cells: # 326.12 GB
+        url: https://plus.figshare.com/ndownloader/files/55021257
+        out_path: ./fine_tune/datasets/anndata
+      HEK293T_filtered_dual_guide_cells: # 194.98 GB
+        url: https://plus.figshare.com/ndownloader/files/55074802
+        out_path: ./fine_tune/datasets/anndata
