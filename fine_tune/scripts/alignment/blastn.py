@@ -241,3 +241,24 @@ def blastn_annotate_alignments(
     annotated_df = match_annotation_targets(annotation_data, keep_best_only, smallest_interval)
     annotated_df = process_annotated_df(annotated_df, targets_path=targets_path, targets_key_map=targets_key_map)
     return annotated_df
+
+
+# from fine_tune.scripts.alignment.utils import find_genes, get_target_length, load_gtf_annotations, match_annotation_targets, process_annotated_df
+
+# out_dir = "fine_tune/datasets/alignment/replogle"
+# gencode_version = 45
+# out_dir = Path(out_dir)
+# tmp_dir = out_dir / "tmp"
+# ref_dir = tmp_dir / f"reference/gencode_v{gencode_version}"
+# gtf = ref_dir / "annotation.gtf"
+# gene_interval_trees = load_gtf_annotations(
+#     gtf,
+#     densify_gene_interval=True,
+#     split_holes_equally=True
+# )
+
+# find_genes("chr5", slice(43515132, 43515150), gene_interval_trees)
+# find_genes("chr5", slice(43515132, 43515150), gene_interval_trees)
+
+# # 9057_TMEM242_P1P2_ENSG00000215712_A	chr6	100.000	19	0	0	2	20	157323302	157323320	0.030	38.2
+# # 9057_TMEM242_P1P2_ENSG00000215712_B	chr6	100.000	19	0	0	2	20	157324047	157324029	0.030	38.2

@@ -6,7 +6,8 @@ out_dir: fine_tune/datasets/alignment/replogle
 gencode_version: 32
 tool: blastn
 aligner_kwargs: # full list: https://www.ncbi.nlm.nih.gov/books/NBK279684/ at [Table C1]
-  -word_size: 12    # Length of initial exact match. (higher imply a speed-up but less granularity)
+  -word_size: 7    # Length of initial exact match. (higher imply a speed-up but less granularity)
+  -evalue: 10
 n_mismatch: 3
 n_thread: 10
 densify_gene_interval: true
