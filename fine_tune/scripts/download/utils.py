@@ -5,8 +5,8 @@ from pathlib import Path
 from typing import Optional, Union
 from urllib.parse import unquote_to_bytes
 
-import requests
-from requests.structures import CaseInsensitiveDict
+import requests  # type: ignore
+from requests.structures import CaseInsensitiveDict  # type: ignore
 from tqdm import tqdm
 from tqdm.contrib.concurrent import thread_map
 
@@ -20,7 +20,7 @@ class FileEntry:
 
     def __post_init__(self):
         if not isinstance(self.out_path, Path):
-            if isinstance(self.out_path, str):
+            if isinstance(self.out_path, str): # type: ignore
                 self.out_path = Path(self.out_path)
             else:
                 raise ValueError(
@@ -28,7 +28,7 @@ class FileEntry:
                 )
 
         if self.raw_path is not None and not isinstance(self.raw_path, Path):
-            if isinstance(self.raw_path, str):
+            if isinstance(self.raw_path, str): # type: ignore
                 self.raw_path = Path(self.raw_path)
             else:
                 raise ValueError(
