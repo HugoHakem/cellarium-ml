@@ -41,6 +41,10 @@ output/
 *.gtf.gz
 *.ebwt
 
+# ontology
+*.owl
+*.obo
+
 #blast pipeline
 *.ndb
 *.nhr

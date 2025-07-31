@@ -41,6 +41,7 @@
           bowtie
           samtools
           blast-bin
+          pkgs.graphviz
         ]);
 
         venvDir = "./.venv";
